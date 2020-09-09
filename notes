@@ -1,0 +1,25 @@
+#!/bin/bash
+# Usage: 
+#  $0        $1			$2			 $3
+# notes		options		inputfile	output	
+PS3="> "
+NOTE_DIR="$HOME/Notes/"
+fmn=( "Presentation" "Pdf" );
+input=$2
+output=$3
+
+[ ! -d $NOTE_DIR ] && mkdir "$NOTE_DIR"
+[[ "$input" != *.md ]] && input=$input.md
+[[ "$output" != *.pdf ]] && output=$output.pdf
+
+case $1 in
+"-c") printf --  '---\ntitle:\n- A great title\nauthor:\n- An even greater author\n---\n# This is a note\n## This is the start of your note!\n' > "$NOTE_DIR$input" ; $EDITOR "$NOTE_DIR$input" ;;
+"-f")
+select choice in "${fmn[@]}"; do
+	case $choice in
+	"Presentation") pandoc $input -t beamer -o $output ; exit 0 ;;
+	"Pdf") pandoc -s -o $output $input ; exit 0 ;;
+	esac
+done ;;
+*) printf "Options:\n-c -> Create a new note\n-f -> Format a note\nUsage:\nnotes option inputfile outputfile\n" ;;
+esac
