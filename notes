@@ -8,6 +8,7 @@ NOTE_DIR="$HOME/Notes/"
 DIR="$HOME/Notes/Reading/"
 fmn=( "Presentation" "Pdf" );
 input=$2
+n=$(find $NOTE_DIR -type f | sed 's/\.\///' | sed 's/^.*\(Notes.*\)/\1/g' | sed "s/Notes\///g" | grep -v .pdf$)
 
 [ ! -d $DIR ] && mkdir -p "$DIR"
 [ -z "$input" ] && input="notes-$(date '+%Y-%m-%d-%H:%M').md"
@@ -25,7 +26,7 @@ case $new in
 "Y")
 read -p "Category: " newcat
 [ -z $newcat ] && exit 1
-mkdir $NOTE_DIR$newcat
+mkdir $NOTE_DIR$newcat ; mkdir $DIR$newcat
 printf --  '---\ntitle:\n- A great title\nauthor:\n- An even greater author\ndate:\n- ' > "$NOTE_DIR$newcat/$input"
 printf -- $(date +%d/%m/%Y) >> "$NOTE_DIR$newcat/$input"
 printf -- '\ntheme:\n- Berlin\ncolortheme:\n- default\ncomment:\n- This is my awesome comment\n---\n# This is a note\n## This is the start of your note!\n' >> "$NOTE_DIR$newcat/$input"
@@ -52,12 +53,17 @@ exit 0
 esac
 ;;
 "-f")
-[ -z "$2" ] && exit 1
-select choice in "${fmn[@]}"; do
+select option in $n
+do
+	[ -z "$option" ] && exit 1
+	cd $NOTE_DIR
+	select choice in "${fmn[@]}"; do
 	case $choice in
-	"Presentation") pandoc $input -t beamer -o "$DIR${input//.md}.pdf" ; exit 0 ;;
-	"Pdf") pandoc -s -o "$DIR${input//.md}.pdf" $input ; exit 0 ;;
+	"Presentation") pandoc $option -t beamer -o "$DIR${option//.md}.pdf" ; exit 0 ;;
+	"Pdf") pandoc -s -o "$DIR${option//.md}.pdf" $option ; exit 0 ;;
 	esac
-done ;;
+	done
+done
+exit 0 ;;
 *) printf "Options:\n-c\tCreate a new note\n-f\tFormat a note\nUsage:\nnotes option inputfile\n" ;;
 esac
