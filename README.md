@@ -10,6 +10,7 @@ A note-taking tool entirely written in bash.
 
 * Creating notes [X]
 * Formatting notes [X]
+* Category support
 
 ## Formats:
 
