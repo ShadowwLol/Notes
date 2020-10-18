@@ -1,27 +1,63 @@
 #!/bin/bash
-# Usage: 
-#  $0        $1			   $2	
+# Usage:
+#  $0        $1			   $2
 # notes		options		inputfile
 PS3="> "
+categories=$(ls -p $HOME/Notes/ | grep / | sed "s/\///g;/Reading/d")
 NOTE_DIR="$HOME/Notes/"
-READ_DIR="$HOME/Reading/Notes/"
+DIR="$HOME/Notes/Reading/"
 fmn=( "Presentation" "Pdf" );
 input=$2
 
-[ ! -d $NOTE_DIR ] && mkdir "$NOTE_DIR"
-[ ! -d $READ_DIR ] && mkdir -p "$READ_DIR"
+[ ! -d $DIR ] && mkdir -p "$DIR"
+[ -z "$input" ] && input="notes-$(date '+%Y-%m-%d-%H:%M').md"
 [[ "$input" != *.md ]] && input=$input.md
 
 case $1 in
-"-c") printf --  '---\ntitle:\n- A great title\nauthor:\n- An even greater author\n---\n# This is a note\n## This is the start of your note!\n' > "$NOTE_DIR$input"
-vim "$NOTE_DIR$input"
+"-c")
+read -p "Category? (Y/N): " catchoice
+[ -z $catchoice ] && exit 1
+case $catchoice in
+"Y")
+read -p 'New? (Y/N): ' new
+[ -z $new ] && exit 1
+case $new in
+"Y")
+read -p "Category: " newcat
+[ -z $newcat ] && exit 1
+mkdir $NOTE_DIR$newcat
+printf --  '---\ntitle:\n- A great title\nauthor:\n- An even greater author\ndate:\n- ' > "$NOTE_DIR$newcat/$input"
+printf -- $(date +%d/%m/%Y) >> "$NOTE_DIR$newcat/$input"
+printf -- '\ntheme:\n- Berlin\ncolortheme:\n- default\ncomment:\n- This is my awesome comment\n---\n# This is a note\n## This is the start of your note!\n' >> "$NOTE_DIR$newcat/$input"
+vim "$NOTE_DIR$newcat/$input"
+exit 0
+;;
+esac
+select option in $categories; do
+	[ -z $option ] && exit 1
+	printf --  '---\ntitle:\n- A great title\nauthor:\n- An even greater author\ndate:\n- ' > "$NOTE_DIR$option/$input"
+	printf -- $(date +%d/%m/%Y) >> "$NOTE_DIR$option/$input"
+	printf -- '\ntheme:\n- Berlin\ncolortheme:\n- default\ncomment:\n- This is my awesome comment\n---\n# This is a note\n## This is the start of your note!\n' >> "$NOTE_DIR$option/$input"
+	vim "$NOTE_DIR$option/$input"
+	exit 0
+done
+;;
+*)
+printf --  '---\ntitle:\n- A great title\nauthor:\n- An even greater author\ndate:\n- ' > "$NOTE_DIR$input"
+printf -- $(date +%d/%m/%Y) >> "$NOTE_DIR$input"
+printf -- '\ntheme:\n- Berlin\ncolortheme:\n- default\ncomment:\n- This is my awesome comment\n---\n# This is a note\n## This is the start of your note!\n' >> "$NOTE_DIR$input"
+vim "$NOTE_DIR$input" 
+exit 0
+;;
+esac
 ;;
 "-f")
+[ -z "$2" ] && exit 1
 select choice in "${fmn[@]}"; do
 	case $choice in
-	"Presentation") pandoc $input -t beamer -o "$READ_DIR${input//.md}.pdf" ; exit 0 ;;
-	"Pdf") pandoc -s -o "$READ_DIR${input//.md}.pdf" $input ; exit 0 ;;
+	"Presentation") pandoc $input -t beamer -o "$DIR${input//.md}.pdf" ; exit 0 ;;
+	"Pdf") pandoc -s -o "$DIR${input//.md}.pdf" $input ; exit 0 ;;
 	esac
 done ;;
-*) printf "Options:\n-c -> Create a new note\n-f -> Format a note\nUsage:\nnotes option inputfile\n" ;;
+*) printf "Options:\n-c\tCreate a new note\n-f\tFormat a note\nUsage:\nnotes option inputfile\n" ;;
 esac
